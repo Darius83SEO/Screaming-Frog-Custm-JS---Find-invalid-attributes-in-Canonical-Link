@@ -1,0 +1,47 @@
+/*
+FIND INVALID ATTRIBUTES IN CANONICAL TAG
+Info: Checks canonical link tags for hreflang, lang, media, or type attributes, which may cause Google to ignore them.
+Author: Dario Ciracì - Senior SEO www.webinfermento.it
+Usage:
+1. Paste the script into Crawl config > Custom > Custom JavaScript > Add
+2. In the Snippet Editor, make sure the mode is set to "Extraction" and “Content types” is "text/html"
+3. Run the crawl using JavaScript rendering
+4. See the results in the Custom JavaScript tab
+*/
+
+// List of disallowed attributes that may cause Google to ignore the canonical tag
+const disallowedAttributes = new Set(["hreflang", "lang", "media", "type"]);
+
+// Function to analyze the canonical tag
+function analyzeCanonical() {
+    const canonicalTags = document.querySelectorAll('link[rel="canonical"]');
+    if (canonicalTags.length === 0) {
+        return seoSpider.error("No canonical link tag found on this page.");
+    }
+
+    // Loop through each canonical tag found
+    for (const canonical of canonicalTags) {
+        const attributes = canonical.attributes;
+        let hasDisallowedAttributes = false;
+        let foundAttributes = [];
+
+        // Check for disallowed attributes
+        for (let i = 0; i < attributes.length; i++) {
+            const attrName = attributes[i].name;
+            if (disallowedAttributes.has(attrName)) {
+                hasDisallowedAttributes = true;
+                foundAttributes.push(attrName);
+            }
+        }
+
+        // Log the result
+        if (hasDisallowedAttributes) {
+            return seoSpider.data("Canonical link tag contains invalid attributes that may be ignored by Google: " + foundAttributes.join(", "));
+        } else {
+            return seoSpider.data("Canonical link tag is correctly implemented with no disallowed attributes.");
+        }
+    }
+}
+
+// Call the analyzeCanonical function
+return analyzeCanonical();
